@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered Python Programming Q&A Assistant">
+    <title>Python QA Assistant</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0c10;
+            --surface: rgba(31, 33, 42, 0.6);
+            --primary: #45f3ff;
+            --secondary: #66fcf1;
+            --text-main: #c5c6c7;
+            --text-muted: #8b8e98;
+            --border: rgba(69, 243, 255, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at 10% 20%, rgb(11, 12, 16) 0%, rgb(25, 27, 34) 90%);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            width: 100%;
+            padding: 20px;
+            text-align: center;
+            background: rgba(11, 12, 16, 0.8);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            color: var(--primary);
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(69, 243, 255, 0.3);
+        }
+
+        .chat-container {
+            flex-grow: 1;
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+            margin-bottom: 90px;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 18px 24px;
+            border-radius: 16px;
+            line-height: 1.6;
+            animation: fadeIn 0.4s ease-out;
+            position: relative;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-msg {
+            align-self: flex-end;
+            background: linear-gradient(135deg, rgba(69, 243, 255, 0.1), rgba(102, 252, 241, 0.05));
+            border: 1px solid var(--border);
+            border-bottom-right-radius: 4px;
+            color: #fff;
+        }
+
+        .ai-msg {
+            align-self: flex-start;
+            background: var(--surface);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .ai-msg h3 { margin-bottom: 10px; color: #fff; font-size: 1.1rem; }
+        .ai-msg p { margin-bottom: 12px; }
+        .ai-msg pre {
+            background: #111216;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid rgba(255,255,255,0.05);
+            margin: 10px 0;
+        }
+        .ai-msg code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            color: #a8d5e2;
+        }
+
+        .meta-badges {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .badge.latency { border-color: rgba(255, 193, 7, 0.4); color: #ffc107; }
+        .badge.grounded { border-color: rgba(76, 175, 80, 0.4); color: #4caf50; }
+        .badge.ungrounded { border-color: rgba(244, 67, 54, 0.4); color: #f44336; }
+        .badge.source { border-color: var(--border); color: var(--secondary); cursor: pointer; transition: 0.2s; }
+        .badge.source:hover { background: rgba(69, 243, 255, 0.1); }
+
+        .input-area {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: rgba(11, 12, 16, 0.9);
+            backdrop-filter: blur(15px);
+            padding: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+        }
+
+        .input-wrapper {
+            width: 100%;
+            max-width: 800px;
+            display: flex;
+            gap: 15px;
+        }
+
+        input {
+            flex-grow: 1;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 16px 24px;
+            border-radius: 30px;
+            color: #fff;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.3s ease;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: var(--secondary);
+            box-shadow: 0 0 15px rgba(69, 243, 255, 0.2);
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary), #2b8288);
+            border: none;
+            border-radius: 50%;
+            width: 54px;
+            height: 54px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.3s ease;
+            box-shadow: 0 4px 15px rgba(69, 243, 255, 0.3);
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(69, 243, 255, 0.5);
+        }
+
+        button svg {
+            width: 20px;
+            height: 20px;
+            fill: #0b0c10;
+        }
+
+        .loading {
+            display: none;
+            align-self: flex-start;
+            padding: 10px 20px;
+        }
+
+        .dot-pulse {
+            position: relative;
+            left: -9999px;
+            width: 8px;
+            height: 8px;
+            border-radius: 5px;
+            background-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 9999px 0 0 -5px;
+            animation: dot-pulse 1.5s infinite linear;
+            animation-delay: 0.25s;
+        }
+        .dot-pulse::before, .dot-pulse::after {
+            content: "";
+            display: inline-block;
+            position: absolute;
+            top: 0;
+            width: 8px;
+            height: 8px;
+            border-radius: 5px;
+            background-color: var(--primary);
+            color: var(--primary);
+        }
+        .dot-pulse::before {
+            box-shadow: 9984px 0 0 -5px;
+            animation: dot-pulse-before 1.5s infinite linear;
+            animation-delay: 0s;
+        }
+        .dot-pulse::after {
+            box-shadow: 10014px 0 0 -5px;
+            animation: dot-pulse-after 1.5s infinite linear;
+            animation-delay: 0.5s;
+        }
+
+        @keyframes dot-pulse-before {
+            0% { box-shadow: 9984px 0 0 -5px; }
+            30% { box-shadow: 9984px 0 0 2px; }
+            60%, 100% { box-shadow: 9984px 0 0 -5px; }
+        }
+        @keyframes dot-pulse {
+            0% { box-shadow: 9999px 0 0 -5px; }
+            30% { box-shadow: 9999px 0 0 2px; }
+            60%, 100% { box-shadow: 9999px 0 0 -5px; }
+        }
+        @keyframes dot-pulse-after {
+            0% { box-shadow: 10014px 0 0 -5px; }
+            30% { box-shadow: 10014px 0 0 2px; }
+            60%, 100% { box-shadow: 10014px 0 0 -5px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Python QA Assistant</h1>
+    </div>
+
+    <div class="chat-container" id="chat">
+        <div class="message ai-msg">
+            <p>Hi! I'm your Python Q&A Assistant. Ask me anything about Python programming!</p>
+        </div>
+    </div>
+    
+    <div class="loading" id="loading">
+        <div class="dot-pulse"></div>
+    </div>
+
+    <div class="input-area">
+        <div class="input-wrapper">
+            <input type="text" id="queryInput" placeholder="How do I merge two dictionaries in Python 3.9+?" onkeypress="handleEnter(event)">
+            <button onclick="askQuestion()">
+                <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const chat = document.getElementById('chat');
+        const input = document.getElementById('queryInput');
+        const loading = document.getElementById('loading');
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') askQuestion();
+        }
+
+        async function askQuestion() {
+            const question = input.value.trim();
+            if (!question) return;
+
+            // Add user message
+            addMessage(question, 'user-msg');
+            input.value = '';
+            
+            // Show loading
+            loading.style.display = 'block';
+            chat.appendChild(loading);
+            chat.scrollTop = chat.scrollHeight;
+
+            try {
+                const response = await fetch('/api/v1/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ question: question })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    renderAIResponse(data);
+                } else {
+                    addMessage("Error: " + data.detail, 'ai-msg');
+                }
+            } catch (err) {
+                addMessage("Network Error: " + err.message, 'ai-msg');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function addMessage(text, className) {
+            const div = document.createElement('div');
+            div.className = `message ${className}`;
+            div.textContent = text;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+
+        function renderAIResponse(data) {
+            const div = document.createElement('div');
+            div.className = 'message ai-msg';
+            
+            // Parse Markdown
+            const htmlContent = marked.parse(data.answer);
+            
+            // Build Badges
+            const isGrounded = data.evaluation.is_grounded;
+            let badgesHtml = `
+                <div class="meta-badges">
+                    <span class="badge latency">⏱️ ${data.latency_ms} ms</span>
+                    <span class="badge ${isGrounded ? 'grounded' : 'ungrounded'}">
+                        ${isGrounded ? '✅ Grounded (' + data.evaluation.grounding_score + ')' : '⚠️ Hallucination Warning'}
+                    </span>
+            `;
+            
+            if (data.cached) {
+                badgesHtml += `<span class="badge" style="color:#2196F3; border-color:#2196F3">⚡ Semantic Cache Hit</span>`;
+            }
+
+            data.sources.forEach((src, idx) => {
+                badgesHtml += `<a href="${src.url}" target="_blank" style="text-decoration:none"><span class="badge source">🔗 Source ${idx + 1}</span></a>`;
+            });
+            badgesHtml += `</div>`;
+
+            div.innerHTML = htmlContent + badgesHtml;
+            chat.appendChild(div);
+            chat.scrollTop = chat.scrollHeight;
+        }
+    </script>
+</body>
+</html>
