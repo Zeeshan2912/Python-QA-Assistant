@@ -4,7 +4,7 @@ FROM python:3.10-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
-ENV PORT=8000
+ENV PORT=7860
 
 # Set work directory
 WORKDIR /app
@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app/
 
 # Expose port
-EXPOSE 8000
+EXPOSE 7860
 
 # Command to run the application using dynamically injected PORT env variable
-CMD uvicorn src.main:app --host 0.0.0.0 --port ${PORT}
+CMD uvicorn src.main:app --host 0.0.0.0 --port 7860
