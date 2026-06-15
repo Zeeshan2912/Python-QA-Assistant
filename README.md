@@ -1,6 +1,17 @@
+---
+title: Python QA Assistant
+emoji: 🐍
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
+
 # Python Programming Q&A Assistant
 
-An AI-powered, production-grade retrieval-augmented generation (RAG) assistant designed to help data science learners get accurate, grounded answers to their Python questions. 
+**🚀 Live Deployed App URL:** [https://huggingface.co/spaces/Zee2912/Python_QA_Assistant](https://huggingface.co/spaces/Zee2912/Python_QA_Assistant)
+
+An AI-powered, production-grade retrieval-augmented generation (RAG) assistant designed to help data science learners get accurate, grounded answers to their Python questions.
 
 This repository was built for the **Analytics Vidhya AI Engineer Take-Home Assessment**. It features hybrid retrieval (Dense Vector + Sparse Keyword search), Reciprocal Rank Fusion (RRF), real-time Self-RAG groundedness guardrails, and an automated evaluation harness.
 
